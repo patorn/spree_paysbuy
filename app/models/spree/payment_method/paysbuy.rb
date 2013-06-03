@@ -5,13 +5,12 @@ class Spree::PaymentMethod::Paysbuy < Spree::PaymentMethod
   preference :username, :string
   preference :psbid, :string 
   preference :securecode, :string
+  preference :test_mode, :boolean
   
-  attr_accessible :preferred_domain, :preferred_username, :preferred_psbid, :preferred_securecode
+  attr_accessible :preferred_domain, :preferred_username, :preferred_psbid, :preferred_securecode, :preferred_test_mode
 
-  if Rails.env.production?
-    base_uri 'https://www.paysbuy.com'
-  else
-    base_uri 'http://demo.paysbuy.com'
+  def self.verify_encrypt(input, encrypted)
+    encrypt(input) == encrypted
   end
 
   # required input
@@ -51,7 +50,7 @@ class Spree::PaymentMethod::Paysbuy < Spree::PaymentMethod
       }
     }
 
-    result = self.class.post(uri, options)
+    result = self.class.post(base_uri + uri, options)
     attempt = 0
 
     # if have got an unexpected result, try to get the correct result again
@@ -60,7 +59,7 @@ class Spree::PaymentMethod::Paysbuy < Spree::PaymentMethod
     while(!(result.parsed_response["string"] =~ /^00/) && 
       (attempt <= 5)) do
 
-      result = self.class.post(uri, options)
+      result = self.class.post(base_uri + uri, options)
       attempt += 1
     end
 
@@ -73,7 +72,7 @@ class Spree::PaymentMethod::Paysbuy < Spree::PaymentMethod
 
   def service_url(*args)
     options = args.extract_options!
-    URI::join( self.class.base_uri, service_uri(options)).to_s
+    URI::join( base_uri, service_uri(options)).to_s
   end
 
   def verify
@@ -84,8 +83,12 @@ class Spree::PaymentMethod::Paysbuy < Spree::PaymentMethod
     Digest::HMAC.hexdigest(data, "SmartSoftAsia69", Digest::SHA2)
   end
 
-  def self.verify_encrypt(input, encrypted)
-    encrypt(input) == encrypted
+  def base_uri
+    if preferred_test_mode == true
+      'http://demo.paysbuy.com'
+    else
+      'https://www.paysbuy.com'
+    end
   end
 
 end
