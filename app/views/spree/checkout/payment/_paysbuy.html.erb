@@ -1,0 +1,39 @@
+<% 
+  payment_iframe_url =  payment_method.service_url(
+    invoice: @order.number,
+    amount: @order.total,
+    name: @order.name,
+    email: @order.email,
+    lang: I18n.locale.to_s[0].upcase,
+    order_id: @order.id
+  )
+%>
+
+<style>
+  iframe.paysbuy_frame {
+    border: 0px;
+    width: 600px;
+    height: 500px;
+  }
+</style>
+<script type="text/javascript">
+  $(function(){
+
+    var $radioInputs = $('input:radio[name="order[payments_attributes][][payment_method_id]"]');
+
+    var toggleSubmit = function() {
+      if ($(this).is(':checked') && $(this).val() == <%= payment_method.id %>) {
+        $('input[type="submit"]').hide();
+      } else {
+        $('input[type="submit"]').show();
+      }
+    }
+
+    $radioInputs.on('change', toggleSubmit);
+  });
+</script>
+
+<fieldset id="paysbuy_payment__<%= payment_method.id %>" data-hook>
+  <iframe id="paysbuy_frame_<%= payment_method.id %>"
+    class="paysbuy_frame" src="<%= payment_iframe_url %>"></iframe>
+</fieldset>
