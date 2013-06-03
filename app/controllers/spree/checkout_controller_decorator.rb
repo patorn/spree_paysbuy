@@ -5,7 +5,7 @@ module Spree
 
     def paysbuy_return
       unless @order.payments.where(:source_type => 'Spree::PaysbuyTransaction').present?
-        payment_method = PaymentMethod.where(type: "Spree::BillingIntegration::Paysbuy").last
+        payment_method = PaymentMethod.where(type: "Spree::PaymentMethod::Paysbuy").last
         paysbuy_transaction = PaysbuyTransaction.new
 
         payment = @order.payments.create({:amount => @order.total,

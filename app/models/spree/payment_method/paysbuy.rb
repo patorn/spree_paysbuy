@@ -1,23 +1,17 @@
-class Spree::BillingIntegration::Paysbuy < Spree::BillingIntegration
+class Spree::PaymentMethod::Paysbuy < Spree::PaymentMethod
   include HTTParty
 
-  # Set up payment environment
-  if Rails.env == 'production'
-    base_uri 'http://demo.paysbuy.com'
-    PSBID = "8303545188"
-    USERNAME = "demo@paysbuy.com"
-    SECURECODE = "1586093A8F80CBB5003001B42F0EEB7C"    
-    DOMAIN = "http://localhost:3000"
+  preference :domain, :string
+  preference :username, :string
+  preference :psbid, :string 
+  preference :securecode, :string
+  
+  attr_accessible :preferred_domain, :preferred_username, :preferred_psbid, :preferred_securecode
+
+  if Rails.env.production?
+    base_uri 'https://www.paysbuy.com'
   else
     base_uri 'http://demo.paysbuy.com'
-    PSBID = "8303545188"
-    USERNAME = "demo@paysbuy.com"
-    SECURECODE = "1586093A8F80CBB5003001B42F0EEB7C"    
-    DOMAIN = "http://localhost:3000"
-  end
-
-  def provider_class
-    ActiveMerchant::Billing::Integrations::Paysbuy
   end
 
   # required input
@@ -34,9 +28,9 @@ class Spree::BillingIntegration::Paysbuy < Spree::BillingIntegration
 
     options ={
       body: {
-        psbID: PSBID, 
-        username: USERNAME, 
-        secureCode: SECURECODE,
+        psbID: self.preferred_psbid, 
+        username: self.preferred_username, 
+        secureCode: self.preferred_securecode,
         inv: args_options[:invoice],
         itm: '1',        
         amt: args_options[:amount],
@@ -45,8 +39,8 @@ class Spree::BillingIntegration::Paysbuy < Spree::BillingIntegration
         com: '',
         method: 1,
         language: args_options[:lang],
-        resp_front_url: "#{DOMAIN}/orders/#{args_options[:order_id]}/checkout/paysbuy_return",
-        resp_back_url: "#{DOMAIN}/paysbuy_callbacks/notify?encryted_order_number=#{encrypt args_options[:invoice]}",
+        resp_front_url: "#{self.preferred_domain}/orders/#{args_options[:order_id]}/checkout/paysbuy_return",
+        resp_back_url: "#{self.preferred_domain}/paysbuy_callbacks/notify?encryted_order_number=#{encrypt args_options[:invoice]}",
         opt_fix_redirect: 1,
         opt_fix_method: '',
         opt_name: args_options[:name],
@@ -79,12 +73,11 @@ class Spree::BillingIntegration::Paysbuy < Spree::BillingIntegration
 
   def service_url(*args)
     options = args.extract_options!
-
     URI::join( self.class.base_uri, service_uri(options)).to_s
   end
 
   def verify
-    puts PSBID
+    puts self.preferred_psbid
   end
 
   def encrypt(data)

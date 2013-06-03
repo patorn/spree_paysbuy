@@ -21,7 +21,7 @@ module SpreePaysbuy
 
     initializer "spree_paysbuy.register.payment_methods", :after => 'spree.register.payment_methods' do |app|
       app.config.spree.payment_methods += [
-          Spree::BillingIntegration::Paysbuy
+          Spree::PaymentMethod::Paysbuy
       ]
     end
   end

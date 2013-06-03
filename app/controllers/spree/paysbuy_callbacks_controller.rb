@@ -13,9 +13,9 @@ module Spree
       @order ||= Spree::Order.find_by_number!(order_number)
       
       # result_code '00' is success
-      if result_code == "00" && Spree::BillingIntegration::Paysbuy.verify_encrypt(order_number, encrypted_num) && check_same_amount?(@order, params[:amt])
+      if result_code == "00" && Spree::PaymentMethod::Paysbuy.verify_encrypt(order_number, encrypted_num) && check_same_amount?(@order, params[:amt])
         
-        payment_method = PaymentMethod.where(type: "Spree::BillingIntegration::Paysbuy").last
+        payment_method = PaymentMethod.where(type: "Spree::PaymentMethod::Paysbuy").last
         payment = @order.payments.where(:state => "pending", 
                                         :payment_method_id => payment_method).first
         paysbuy_transaction = PaysbuyTransaction.create_from_postback params
