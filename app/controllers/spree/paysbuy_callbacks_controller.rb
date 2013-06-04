@@ -32,17 +32,23 @@ module Spree
 
         payment.started_processing!
 
-        if params[:method] == "06" && params[:confirm_cs] != "true"
-          payment.complete!
-          log_completed_payment(@order)
+        unless payment_method == "06"
+          # any payment methods except counter service (06)
+          payment.complete!  
         else
-          payment.failure!
-          log_failed_payment(@order, 
-              params[:result],
-              verified, 
-              check_same_amount?(@order, params[:amt])
-            )
+          # counter service
+          if confirm_cs == "true"
+            payment.complete! 
+          else
+            payment.failure!
+            log_failed_payment(@order, 
+                params[:result],
+                verified, 
+                check_same_amount?(@order, params[:amt])
+              )
+          end
         end
+        log_completed_payment(@order)
       else
         log_failed_order(params[:result])
         payment.failure!
