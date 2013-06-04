@@ -10,7 +10,11 @@ class Spree::PaymentMethod::Paysbuy < Spree::PaymentMethod
   attr_accessible :preferred_domain, :preferred_username, :preferred_psbid, :preferred_securecode, :preferred_test_mode
 
   def self.verify_encrypt(input, encrypted)
-    encrypt(input) == encrypted
+    self.encrypt(input) == encrypted
+  end
+
+  def self.encrypt(data)
+    Digest::HMAC.hexdigest(data, "SmartSoftAsia69", Digest::SHA2)
   end
 
   # required input
@@ -39,7 +43,7 @@ class Spree::PaymentMethod::Paysbuy < Spree::PaymentMethod
         method: 1,
         language: args_options[:lang],
         resp_front_url: "#{self.preferred_domain}/orders/#{args_options[:order_id]}/checkout/paysbuy_return",
-        resp_back_url: "#{self.preferred_domain}/paysbuy_callbacks/notify?encryted_order_number=#{encrypt args_options[:invoice]}",
+        resp_back_url: "#{self.preferred_domain}/paysbuy_callbacks/notify?encryted_order_number=#{self.class.encrypt args_options[:invoice]}",
         opt_fix_redirect: 1,
         opt_fix_method: '',
         opt_name: args_options[:name],
@@ -77,10 +81,6 @@ class Spree::PaymentMethod::Paysbuy < Spree::PaymentMethod
 
   def verify
     puts self.preferred_psbid
-  end
-
-  def encrypt(data)
-    Digest::HMAC.hexdigest(data, "SmartSoftAsia69", Digest::SHA2)
   end
 
   def base_uri
