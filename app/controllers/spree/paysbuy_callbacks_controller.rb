@@ -9,11 +9,12 @@ module Spree
       result = params[:result]
       result_code = (params[:result] || "")[0,2]
       order_number = (params[:result] || "")[2,10]
+      verified = Spree::PaymentMethod::Paysbuy.verify_encrypt(order_number, encrypted_num)
 
       @order ||= Spree::Order.find_by_number!(order_number)
       
       # result_code '00' is success
-      if result_code == "00" && Spree::PaymentMethod::Paysbuy.verify_encrypt(order_number, encrypted_num) && check_same_amount?(@order, params[:amt])
+      if result_code == "00" && verified && check_same_amount?(@order, params[:amt])
         
         payment_method = PaymentMethod.where(type: "Spree::PaymentMethod::Paysbuy").last
         payment = @order.payments.where(:state => "pending", 
@@ -38,7 +39,7 @@ module Spree
           payment.failure!
           log_failed_payment(@order, 
               params[:result],
-              Paysbuy.verify_encrypt(order_number, encrypted_num), 
+              verified, 
               check_same_amount?(@order, params[:amt])
             )
         end
