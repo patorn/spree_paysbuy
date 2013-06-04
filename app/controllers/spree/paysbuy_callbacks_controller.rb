@@ -21,14 +21,15 @@ module Spree
                                         :payment_method_id => payment_method).first
         paysbuy_transaction = PaysbuyTransaction.create_from_postback params
 
-        if payment
-          payment.source = paysbuy_transaction
-          payment.save
-        else
-          payment = @order.payments.create(:amount => @order.total,
-                                           :source => paysbuy_transaction,
-                                           :payment_method => payment_method)
+        if payment.blank?
+          payment = @order.payments.new
+          payment.amount = @order.total
+          payment.payment_method = payment_method
         end
+
+        payment.source = paysbuy_transaction
+        payment.response_code = params[:result]
+        payment.save
 
         payment.started_processing!
 
