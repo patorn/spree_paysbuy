@@ -13,24 +13,26 @@ module Spree
 
       @order ||= Spree::Order.find_by_number!(order_number)
       
+      # payment processing
+      payment_method = PaymentMethod.where(type: "Spree::PaymentMethod::Paysbuy").last
+      
+      payment = @order.payments.where(:state => "pending", 
+                                        :payment_method_id => payment_method).first
+      if payment.blank?
+        payment = @order.payments.new
+        payment.amount = @order.total
+        payment.payment_method = payment_method
+      end
+
+      paysbuy_transaction = PaysbuyTransaction.create_from_postback params
+
+      payment.source = paysbuy_transaction
+      payment.response_code = params[:result]
+      payment.save
+
       # result_code '00' is success
       if result_code == "00" && verified && check_same_amount?(@order, params[:amt])
         
-        payment_method = PaymentMethod.where(type: "Spree::PaymentMethod::Paysbuy").last
-        payment = @order.payments.where(:state => "pending", 
-                                        :payment_method_id => payment_method).first
-        paysbuy_transaction = PaysbuyTransaction.create_from_postback params
-
-        if payment.blank?
-          payment = @order.payments.new
-          payment.amount = @order.total
-          payment.payment_method = payment_method
-        end
-
-        payment.source = paysbuy_transaction
-        payment.response_code = params[:result]
-        payment.save
-
         payment.started_processing!
 
         unless payment_method == "06"
@@ -51,7 +53,11 @@ module Spree
         end
         log_completed_payment(@order)
       else
-        log_failed_order(params[:result])
+        log_failed_payment(@order, 
+            params[:result],
+            verified, 
+            check_same_amount?(@order, params[:amt])
+          )
         payment.failure!
       end
 
