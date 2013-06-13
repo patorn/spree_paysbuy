@@ -27,7 +27,11 @@
       } else {
         $('input[type="submit"]').show();
       }
-    }
+    };
+
+    if ( $('.paysbuy_frame').closest('li').is(":visible") ){
+      $('input[type="submit"]').hide();
+    };
 
     $radioInputs.on('change', toggleSubmit);
   });
