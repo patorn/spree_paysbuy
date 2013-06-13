@@ -20,18 +20,18 @@ module Spree
                                         :payment_method_id => payment_method).first
       if payment.blank?
         payment = @order.payments.new
-        payment.amount = @order.total
         payment.payment_method = payment_method
       end
 
       paysbuy_transaction = PaysbuyTransaction.create_from_postback params
 
+      payment.amount = @order.total
       payment.source = paysbuy_transaction
       payment.response_code = params[:result]
       payment.save
 
       # result_code '00' is success
-      if result_code == "00" && verified && check_same_amount?(@order, params[:amt])
+      if result_code == "00" && verified && check_same_amount?(payment, params[:amt])
         
         payment.started_processing!
 
@@ -86,8 +86,8 @@ module Spree
       Rails.logger.info("--------------------------------------")
     end
 
-    def check_same_amount?(order, amount)
-      order.amount.to_f == amount.to_f
+    def check_same_amount?(payment, amount)
+      payment.amount.to_f == amount.to_f
     end  
 
   end
