@@ -1,0 +1,45 @@
+<fieldset>
+  <legend><%= t('paysbuy') %></legend>
+
+  <table class="index">
+    <tr>
+      <th colspan="6"><%= t('paysbuy_transaction') %></th>
+    </tr>
+    <tr>
+      <td><label><%= t("result") %>:</label></td>
+      <td>
+        <%= payment.source.result %>
+      </td>
+    </tr>
+    <tr>
+      <td><label><%= t("ap_code") %>:</label></td>
+      <td>
+        <%= payment.source.ap_code %>
+      </td>
+    </tr>
+    <tr>
+      <td><label><%= t("amount") %>:</label></td>
+      <td>
+        <%= payment.source.amount %>
+      </td>
+    </tr>
+    <tr>
+      <td><label><%= t("fee") %>:</label></td>
+      <td>
+        <%= payment.source.fee %>
+      </td>
+    </tr>
+    <tr>
+      <td><label><%= t("method") %>:</label></td>
+      <td>
+        <%= payment.source.method %>
+      </td>
+    </tr>
+    <tr>
+      <td><label><%= t("confirm_cs") %>:</label></td>
+      <td>
+        <%= payment.source.confirm_cs %>
+      </td>
+    </tr>
+  </table>
+</fieldset>
