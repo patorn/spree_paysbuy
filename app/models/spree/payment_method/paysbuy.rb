@@ -1,3 +1,5 @@
+require 'httparty'
+
 class Spree::PaymentMethod::Paysbuy < Spree::PaymentMethod
   include HTTParty
 
